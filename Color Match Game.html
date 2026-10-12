@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Color Match Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 20px;
+      font-family: Inter, Arial, sans-serif;
+      color: #f5f7ff;
+      background:
+        radial-gradient(ellipse at top left, #252456 0%, transparent 45%),
+        radial-gradient(ellipse at bottom right, #173c46 0%, transparent 45%),
+        #10121c;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .game {
+      width: 100%;
+      max-width: 560px;
+      padding: 30px;
+      border: 1px solid #ffffff16;
+      border-radius: 28px;
+      background: #1a1d2bdb;
+      box-shadow: 0 25px 80px #0005;
+      backdrop-filter: blur(16px);
+    }
+
+    .top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 21px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 42px;
+      height: 42px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #8b5cf6, #477bff);
+      font-size: 22px;
+    }
+
+    .pill {
+      padding: 8px 12px;
+      border: 1px solid #ffffff18;
+      border-radius: 30px;
+      color: #c5c9db;
+      font-size: 12px;
+    }
+
+    .intro {
+      margin: 30px 0 22px;
+      text-align: center;
+    }
+
+    .intro h1 {
+      font-size: clamp(29px, 6vw, 40px);
+      letter-spacing: -1.5px;
+    }
+
+    .intro p {
+      margin-top: 10px;
+      color: #a6abc1;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 24px 0;
+    }
+
+    .stat {
+      padding: 15px 8px;
+      border: 1px solid #ffffff12;
+      border-radius: 16px;
+      background: #ffffff06;
+      text-align: center;
+    }
+
+    .stat-label {
+      color: #959bb3;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .stat-value {
+      margin-top: 8px;
+      font-size: 25px;
+      font-weight: 800;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .timer-track {
+      height: 7px;
+      margin: 0 0 25px;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #ffffff14;
+    }
+
+    .timer-bar {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #6c63ff, #48d7bd);
+      transition: width 0.1s linear;
+    }
+
+    .challenge {
+      padding: 28px 12px 24px;
+      border: 1px solid #ffffff12;
+      border-radius: 22px;
+      background: #11131e;
+      text-align: center;
+    }
+
+    .challenge-label {
+      color: #959bb3;
+      font-size: 11px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    .word {
+      margin: 24px 0;
+      font-size: clamp(54px, 13vw, 82px);
+      line-height: 1.1;
+      font-weight: 950;
+      letter-spacing: 3px;
+      user-select: none;
+    }
+
+    .instruction {
+      color: #c4c8d9;
+      font-size: 14px;
+    }
+
+    .instruction strong {
+      color: white;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 18px;
+    }
+
+    .color-btn {
+      min-height: 58px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid #ffffff20;
+      border-radius: 15px;
+      background: #ffffff08;
+      color: #f5f7ff;
+      font-size: 15px;
+      font-weight: 750;
+      cursor: pointer;
+      transition: transform 0.15s, background 0.15s, border-color 0.15s;
+    }
+
+    .color-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      background: #ffffff15;
+      border-color: #ffffff50;
+    }
+
+    .color-btn:active:not(:disabled) {
+      transform: scale(0.98);
+    }
+
+    .color-btn:disabled {
+      cursor: default;
+      opacity: 0.7;
+    }
+
+    .dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 50%;
+      background: var(--swatch);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--swatch), transparent 55%);
+    }
+
+    .feedback {
+      min-height: 26px;
+      margin-top: 16px;
+      color: #c7cbe0;
+      text-align: center;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .feedback.good {
+      color: #55e6b0;
+    }
+
+    .feedback.bad {
+      color: #ff8394;
+    }
+
+    .main-btn {
+      width: 100%;
+      margin-top: 20px;
+      padding: 16px;
+      border: none;
+      border-radius: 15px;
+      background: linear-gradient(100deg, #7965ff, #4e82ff);
+      color: white;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 8px 25px #625eff30;
+      transition: filter 0.2s, transform 0.2s;
+    }
+
+    .main-btn:hover {
+      filter: brightness(1.12);
+      transform: translateY(-1px);
+    }
+
+    .main-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .result {
+      padding: 35px 0 10px;
+      text-align: center;
+    }
+
+    .result-icon {
+      font-size: 64px;
+    }
+
+    .result h2 {
+      margin-top: 15px;
+      font-size: 32px;
+    }
+
+    .result p {
+      margin-top: 10px;
+      color: #a6abc1;
+      line-height: 1.7;
+    }
+
+    .result-score {
+      margin: 22px 0;
+      font-size: 56px;
+      font-weight: 900;
+      background: linear-gradient(100deg, #a78bfa, #54e4d0);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .best {
+      color: #f8d779 !important;
+      font-size: 13px;
+    }
+
+    .tip {
+      margin-top: 22px;
+      color: #858ba4;
+      text-align: center;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+
+    @media (max-width: 420px) {
+      .game {
+        padding: 20px 15px;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+      .stat-value {
+        font-size: 22px;
+      }
+
+      .color-btn {
+        min-height: 54px;
+        font-size: 13px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="game">
+    <header class="top">
+      <div class="brand">
+        <span class="brand-icon">🎨</span>
+        <span>COLOR MATCH GAME</span>
+      </div>
+      <span class="pill">BRAIN TRAINING</span>
+    </header>
+
+    <section id="startScreen">
+      <div class="intro">
+        <h1>Think in <span style="color:#8f81ff">color.</span></h1>
+        <p>
+          Don't read the word. Match the ink color.<br>
+          You have 30 seconds to score as many points as possible.
+        </p>
+      </div>
+
+      <button class="main-btn" id="startBtn">Start Challenge →</button>
+    </section>
+
+    <section id="gameScreen" class="hidden">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat-label">Time left</div>
+          <div class="stat-value" id="time">30</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Score</div>
+          <div class="stat-value" id="score">0</div>
+        </div>
+        <div class="stat">
+          <div class="stat-label">Streak</div>
+          <div class="stat-value" id="streak">0</div>
+        </div>
+      </div>
+
+      <div class="timer-track">
+        <div class="timer-bar" id="timerBar"></div>
+      </div>
+
+      <div class="challenge">
+        <div class="challenge-label">Select the ink color</div>
+        <div class="word" id="word" aria-live="polite">BLUE</div>
+        <p class="instruction">What color is the word <strong>printed in</strong>?</p>
+      </div>
+
+      <div class="answers" id="answers"></div>
+      <div class="feedback" id="feedback" aria-live="polite"></div>
+    </section>
+
+    <section id="resultScreen" class="result hidden">
+      <div class="result-icon" id="resultIcon">🧠</div>
+      <h2 id="resultTitle">Challenge complete!</h2>
+      <div class="result-score" id="finalScore">0</div>
+      <p id="resultMessage"></p>
+      <p class="best" id="bestScore"></p>
+      <button class="main-btn" id="againBtn">Play Again ↻</button>
+    </section>
+
+    <p class="tip">Trust your eyes, resist the word, and react quickly.</p>
+  </main>
+
+  <script>
+    const COLORS = [
+      { name: "RED", hex: "#ff5364" },
+      { name: "BLUE", hex: "#438bff" },
+      { name: "GREEN", hex: "#48d7a0" },
+      { name: "YELLOW", hex: "#ffd45c" }
+    ];
+
+    const GAME_LENGTH = 30;
+
+    let score = 0;
+    let streak = 0;
+    let timeLeft = GAME_LENGTH;
+    let currentColor = null;
+    let timerId = null;
+    let lastWord = "";
+    let lastInk = "";
+
+    const startScreen = document.getElementById("startScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const resultScreen = document.getElementById("resultScreen");
+    const wordElement = document.getElementById("word");
+    const answersElement = document.getElementById("answers");
+    const feedbackElement = document.getElementById("feedback");
+
+    function randomItem(items) {
+      return items[Math.floor(Math.random() * items.length)];
+    }
+
+    function newRound() {
+      let wordColor;
+      let inkColor;
+
+      do {
+        wordColor = randomItem(COLORS);
+        inkColor = randomItem(COLORS);
+      } while (
+        wordColor.name === lastWord &&
+        inkColor.name === lastInk
+      );
+
+      lastWord = wordColor.name;
+      lastInk = inkColor.name;
+      currentColor = inkColor;
+
+      wordElement.textContent = wordColor.name;
+      wordElement.style.color = inkColor.hex;
+
+      const shuffledColors = [...COLORS].sort(() => Math.random() - 0.5);
+      answersElement.innerHTML = "";
+
+      shuffledColors.forEach(color => {
+        const button = document.createElement("button");
+        button.className = "color-btn";
+        button.style.setProperty("--swatch", color.hex);
+        button.innerHTML =
+          `<span class="dot"></span><span>${color.name}</span>`;
+
+        button.addEventListener("click", () => chooseColor(color, button));
+        answersElement.appendChild(button);
+      });
+
+      feedbackElement.textContent = "";
+      feedbackElement.className = "feedback";
+    }
+
+    function chooseColor(selectedColor, button) {
+      if (timeLeft <= 0 || !currentColor) return;
+
+      const buttons = answersElement.querySelectorAll("button");
+      buttons.forEach(item => item.disabled = true);
+
+      if (selectedColor.name === currentColor.name) {
+        score++;
+        streak++;
+        feedbackElement.textContent =
+          streak >= 3 ? `Perfect! 🔥 ${streak} in a row!` : "Correct! +1 point";
+        feedbackElement.className = "feedback good";
+        button.style.background = "#1b493c";
+      } else {
+        streak = 0;
+        feedbackElement.textContent =
+          `Not quite! The ink was ${currentColor.name}.`;
+        feedbackElement.className = "feedback bad";
+        button.style.background = "#512b38";
+      }
+
+      document.getElementById("score").textContent = score;
+      document.getElementById("streak").textContent = streak;
+
+      currentColor = null;
+
+      // Keep the pace brisk, but give feedback a moment to register.
+      setTimeout(() => {
+        if (timeLeft > 0) newRound();
+      }, 280);
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      document.getElementById("time").textContent = timeLeft;
+      document.getElementById("timerBar").style.width =
+        `${(timeLeft / GAME_LENGTH) * 100}%`;
+
+      if (timeLeft <= 0) endGame();
+    }
+
+    function startGame() {
+      clearInterval(timerId);
+
+      score = 0;
+      streak = 0;
+      timeLeft = GAME_LENGTH;
+      lastWord = "";
+      lastInk = "";
+      currentColor = null;
+
+      document.getElementById("score").textContent = "0";
+      document.getElementById("streak").textContent = "0";
+      document.getElementById("time").textContent = GAME_LENGTH;
+      document.getElementById("timerBar").style.width = "100%";
+
+      startScreen.classList.add("hidden");
+      resultScreen.classList.add("hidden");
+      gameScreen.classList.remove("hidden");
+
+      newRound();
+      timerId = setInterval(updateTimer, 1000);
+    }
+
+    function endGame() {
+      clearInterval(timerId);
+      timerId = null;
+      timeLeft = 0;
+      currentColor = null;
+
+      gameScreen.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+
+      document.getElementById("finalScore").textContent = score;
+
+      let icon;
+      let title;
+      let message;
+
+      if (score >= 25) {
+        icon = "🚀";
+        title = "Lightning Reflexes!";
+        message = "Fantastic! You handled the distractions at incredible speed.";
+      } else if (score >= 15) {
+        icon = "🧠";
+        title = "Sharp Thinker!";
+        message = "Great work. Your color recognition is on point!";
+      } else if (score >= 7) {
+        icon = "🎯";
+        title = "Getting in the Zone!";
+        message = "A solid start. Stay focused and see if you can beat your score.";
+      } else {
+        icon = "🌱";
+        title = "Warm-up Complete!";
+        message = "The word-reading instinct can be tricky to ignore. Give it another try!";
+      }
+
+      document.getElementById("resultIcon").textContent = icon;
+      document.getElementById("resultTitle").textContent = title;
+      document.getElementById("resultMessage").textContent = message;
+
+      let best = score;
+      try {
+        const previousBest = Number(localStorage.getItem("colorClashBest") || 0);
+        best = Math.max(score, previousBest);
+        localStorage.setItem("colorClashBest", String(best));
+      } catch (error) {
+        // The game still works if browser storage is unavailable.
+      }
+
+      document.getElementById("bestScore").textContent =
+        `Personal best: ${best} points`;
+    }
+
+    document.getElementById("startBtn").addEventListener("click", startGame);
+    document.getElementById("againBtn").addEventListener("click", startGame);
+  </script>
+</body>
+</html>
+
